@@ -127,8 +127,8 @@ class App:
                 pygame.mixer.pre_init(frequency=44100, size=-16, channels=1, buffer=512)
                 pygame.mixer.init()
             
-            self.node_sound = self._make_tone(freq=440,  duration_ms=30, volume=0.10)
-            self.step_sound = self._make_tone(freq=660,  duration_ms=40, volume=0.15)
+            self.node_sound = self._make_tone(freq=330,  duration_ms=45, volume=0.08)
+            self.step_sound = self._make_tone(freq=440,  duration_ms=60, volume=0.12)
             
             print(f"  ✓ Audio initialized: {pygame.mixer.get_init()}")
         except Exception as e:
@@ -138,15 +138,24 @@ class App:
 
     @staticmethod
     def _make_tone(freq: float, duration_ms: int, volume: float) -> pygame.mixer.Sound:
-        """Return a short sine-wave Sound object (no files needed)."""
+        """Return a short sine-wave Sound object with a smooth envelope and slight gradient."""
         sample_rate = 44100
         n_samples   = int(sample_rate * duration_ms / 1000)
         t           = np.linspace(0, duration_ms / 1000, n_samples, endpoint=False)
-        wave        = np.sin(2 * np.pi * freq * t)
         
-        # Fade-out to avoid click artifacts
-        fade        = np.linspace(1.0, 0.0, n_samples)
-        wave        = (wave * fade * volume * 32767).astype(np.int16)
+        # Frequency Gradient (slight descending slide for a more natural feel)
+        freq_grad   = np.linspace(freq, freq * 0.95, n_samples)
+        wave        = np.sin(2 * np.pi * freq_grad * t)
+        
+        # Gentle Envelope (Sine-shaped attack/release)
+        # 20% attack, 80% release
+        att_len = n_samples // 5
+        rel_len = n_samples - att_len
+        envelope = np.ones(n_samples)
+        envelope[:att_len] = 0.5 * (1 - np.cos(np.pi * np.arange(att_len) / att_len))
+        envelope[att_len:] = 0.5 * (1 + np.cos(np.pi * np.arange(rel_len) / rel_len))
+        
+        wave        = (wave * envelope * volume * 32767).astype(np.int16)
         
         # If mixer is stereo, we need to reshape for stereo
         mixer_conf = pygame.mixer.get_init()
@@ -349,7 +358,7 @@ class App:
         self.events_list = []
         self.dynamic_on = False
         self.btn_dyn.active = False
-        self.btn_dyn.text   = "⚡  Dynamic Mode: OFF"
+        self.btn_dyn.text   = "Dynamic Mode: OFF"
         self._set_status("Search cleared. Ready.", C_TEXT_DIM)
 
     def _toggle_dynamic(self):
@@ -357,20 +366,20 @@ class App:
             self.dynamic_on     = True
             self.state          = self.DYNAMIC
             self.btn_dyn.active = True
-            self.btn_dyn.text   = "⚡  Dynamic Mode: ON"
+            self.btn_dyn.text   = "Dynamic Mode: ON"
             self._set_status("Dynamic mode ON — walls may spawn!", C_WARNING)
         elif self.state == self.DYNAMIC:
             self.dynamic_on     = False
             self.state          = self.MOVING
             self.btn_dyn.active = False
-            self.btn_dyn.text   = "⚡  Dynamic Mode: OFF"
+            self.btn_dyn.text   = "Dynamic Mode: OFF"
             self._set_status("Dynamic mode OFF.", C_TEXT_DIM)
         else:
             self.dynamic_on     = not self.dynamic_on
             self.btn_dyn.active = self.dynamic_on
             self.btn_dyn.text   = (
-                "⚡  Dynamic Mode: ON"
-                if self.dynamic_on else "⚡  Dynamic Mode: OFF")
+                "Dynamic Mode: ON"
+                if self.dynamic_on else "Dynamic Mode: OFF")
             self._set_status(
                 "Dynamic mode will activate once the agent starts moving.",
                 C_TEXT_DIM)
@@ -441,7 +450,7 @@ class App:
             self.state      = self.IDLE
             self.dynamic_on = False
             self.btn_dyn.active = False
-            self.btn_dyn.text   = "⚡  Dynamic Mode: OFF"
+            self.btn_dyn.text   = "Dynamic Mode: OFF"
             self._set_status(
                 f"✓ Goal reached! | Cost: {self.path_cost} | "
                 f"Nodes: {self.nodes_visited} | Re-plans: {self.replans} | "
