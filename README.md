@@ -113,11 +113,3 @@ A2_Q6/
 ├── main.py       ← Full implementation (single file)
 ├── README.md     ← This file
 └── report.md     ← Project report
-```
-
----
-
-## Author
-
-**Muhammad Fahad** — National University of Computer & Emerging Sciences, Faisalabad Campus  
-Semester 6 · Artificial Intelligence · Assignment 2, Q6
