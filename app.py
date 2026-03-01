@@ -127,8 +127,8 @@ class App:
                 pygame.mixer.pre_init(frequency=44100, size=-16, channels=1, buffer=512)
                 pygame.mixer.init()
             
-            self.node_sound = self._make_tone(freq=880,  duration_ms=40, volume=0.25)
-            self.step_sound = self._make_tone(freq=1320, duration_ms=50, volume=0.30)
+            self.node_sound = self._make_tone(freq=440,  duration_ms=30, volume=0.10)
+            self.step_sound = self._make_tone(freq=660,  duration_ms=40, volume=0.15)
             
             print(f"  ✓ Audio initialized: {pygame.mixer.get_init()}")
         except Exception as e:
