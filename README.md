@@ -91,7 +91,7 @@ Combines path cost `g(n)` from start with heuristic `h(n)` to goal. Guarantees t
 ### Heuristics
 | Name | Formula |
 |------|---------|
-| Manhattan | `(|x1−x2|) + (|y1−y2|)` |
+| Manhattan | `\|x1−x2\| + \|y1−y2\|` |
 | Euclidean | `√((x1−x2)² + (y1−y2)²)` |
 
 ---
