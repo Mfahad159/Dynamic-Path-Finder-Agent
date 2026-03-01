@@ -1,4 +1,4 @@
-# Dynamic Pathfinding Agent 🤖
+# Dynamic Pathfinding Agent 
 
 A real-time, Pygame-based AI pathfinding visualiser that implements **GBFS** and **A\*** search with dynamic obstacle re-planning.
 
@@ -91,7 +91,7 @@ Combines path cost `g(n)` from start with heuristic `h(n)` to goal. Guarantees t
 ### Heuristics
 | Name | Formula |
 |------|---------|
-| Manhattan | `|x1−x2| + |y1−y2|` |
+| Manhattan | `(|x1−x2|) + (|y1−y2|)` |
 | Euclidean | `√((x1−x2)² + (y1−y2)²)` |
 
 ---
@@ -110,6 +110,34 @@ When **Dynamic Mode** is active:
 
 ```
 A2_Q6/
-├── main.py       ← Full implementation (single file)
-├── README.md     ← This file
-└── report.md     ← Project report
+├── main.py       ← Entry point (CLI & bootstrap)
+├── app.py        ← Main logic & UI orchestration
+├── grid.py       ← Grid management & cell logic
+├── algorithms.py ← Search algorithm implementations
+├── button.py     ← GUI button component
+├── constants.py  ← Shared colors & settings
+├── images/       ← Visual demonstrations
+└── README.md     ← Documentation
+```
+
+---
+
+## Visuals
+
+Capture of the application in action:
+
+<p align="center">
+  <img src="images/figure1.png" width="400" />
+  <img src="images/figure2.png" width="400" />
+</p>
+<p align="center">
+  <img src="images/figure3.png" width="400" />
+  <img src="images/figure4.png" width="400" />
+</p>
+<p align="center">
+  <img src="images/figure5.png" width="400" />
+  <img src="images/figure6.png" width="400" />
+</p>
+<p align="center">
+  <img src="images/figure7.png" width="800" />
+</p>
