@@ -191,7 +191,7 @@ class App:
                     self._on_button(btn)
 
     def _on_key(self, key):
-        k = pygame.key
+        k = pygame   # K_ESCAPE, K_SPACE, etc. are on pygame, not pygame.key
         if key == k.K_ESCAPE:
             pygame.quit(); sys.exit()
         elif key == k.K_SPACE:
