@@ -7,6 +7,7 @@ sidebar rendering, and dynamic re-planning orchestration.
 
 import random
 import sys
+import numpy as np
 
 import pygame
 
@@ -50,6 +51,9 @@ class App:
     def __init__(self, rows: int, cols: int):
         self.rows = rows
         self.cols = cols
+
+        # Initialize mixer BEFORE pygame.init() for better compatibility
+        self._init_sounds()
 
         pygame.init()
         pygame.display.set_caption("Dynamic Pathfinding Agent")
@@ -113,6 +117,45 @@ class App:
         # Build sidebar buttons
         self._build_buttons(win_w)
 
+    # ── sound helpers ─────────────────────────────────────────────────────────
+
+    def _init_sounds(self):
+        """Synthesise two short sine-wave tones used during traversal."""
+        try:
+            # Re-initialize mixer if not already done, or ensure it's ready
+            if not pygame.mixer.get_init():
+                pygame.mixer.pre_init(frequency=44100, size=-16, channels=1, buffer=512)
+                pygame.mixer.init()
+            
+            self.node_sound = self._make_tone(freq=880,  duration_ms=40, volume=0.25)
+            self.step_sound = self._make_tone(freq=1320, duration_ms=50, volume=0.30)
+            
+            print(f"  ✓ Audio initialized: {pygame.mixer.get_init()}")
+        except Exception as e:
+            print(f"  ⚠ Audio initialization failed: {e}")
+            self.node_sound = None
+            self.step_sound = None
+
+    @staticmethod
+    def _make_tone(freq: float, duration_ms: int, volume: float) -> pygame.mixer.Sound:
+        """Return a short sine-wave Sound object (no files needed)."""
+        sample_rate = 44100
+        n_samples   = int(sample_rate * duration_ms / 1000)
+        t           = np.linspace(0, duration_ms / 1000, n_samples, endpoint=False)
+        wave        = np.sin(2 * np.pi * freq * t)
+        
+        # Fade-out to avoid click artifacts
+        fade        = np.linspace(1.0, 0.0, n_samples)
+        wave        = (wave * fade * volume * 32767).astype(np.int16)
+        
+        # If mixer is stereo, we need to reshape for stereo
+        mixer_conf = pygame.mixer.get_init()
+        if mixer_conf and mixer_conf[2] == 2:
+            wave = np.repeat(wave[:, np.newaxis], 2, axis=1)
+            
+        sound = pygame.sndarray.make_sound(wave)
+        return sound
+
     def _build_buttons(self, win_w: int):
         sx   = win_w - SIDEBAR_WIDTH + 10
         fw   = SIDEBAR_WIDTH - 20
@@ -123,12 +166,12 @@ class App:
         self.btn_astar = Button(sx + hw + 4, 0, hw, bh, "A*", self.algo_name == 'A*')
         self.btn_manh  = Button(sx, 0, hw, bh, "Manhattan",  self.heur_name == 'Manhattan')
         self.btn_eucl  = Button(sx + hw + 4, 0, hw, bh, "Euclidean", False)
-        self.btn_gen   = Button(sx, 0, fw, bh, "⚙  Generate Map")
-        self.btn_run   = Button(sx, 0, fw, bh, "▶  Run Algorithm")
-        self.btn_clear = Button(sx, 0, fw, bh, "✕  Clear Search")
+        self.btn_gen   = Button(sx, 0, fw, bh, "Generate Map")
+        self.btn_run   = Button(sx, 0, fw, bh, "Run Algorithm")
+        self.btn_clear = Button(sx, 0, fw, bh, "Clear Search")
         self.btn_ss    = Button(sx, 0, hw, bh, "Set Start")
         self.btn_sg    = Button(sx + hw + 4, 0, hw, bh, "Set Goal")
-        self.btn_dyn   = Button(sx, 0, fw, bh, "⚡  Dynamic Mode: OFF")
+        self.btn_dyn   = Button(sx, 0, fw, bh, "Dynamic Mode: OFF")
 
         self.all_buttons = [
             self.btn_gbfs, self.btn_astar,
@@ -350,6 +393,9 @@ class App:
                     g.mark_frontier(ev_cell)
                 else:
                     g.mark_visited(ev_cell)
+                # Play a soft tick for each node processed
+                if self.node_sound:
+                    self.node_sound.play()
                 self.anim_idx += 1
             else:
                 # Animation finished
@@ -386,6 +432,9 @@ class App:
 
             self.agent_idx += 1
             self.agent_pos  = self.path[self.agent_idx]
+            # Play a brighter click for each agent step
+            if self.step_sound:
+                self.step_sound.play()
         else:
             # Goal reached
             self.agent_pos  = g.goal

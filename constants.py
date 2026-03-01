@@ -9,8 +9,8 @@ SIDEBAR_WIDTH  = 296    # px reserved for the right-hand panel
 FPS            = 60
 
 # ── Search animation ─────────────────────────────────────────────────────────
-ANIM_SPEED     = 4      # search events replayed per frame
-AGENT_DELAY_MS = 90     # ms between agent steps
+ANIM_SPEED     = 1      # search events replayed per frame  (1 = one node at a time)
+AGENT_DELAY_MS = 350    # ms between agent steps
 DYNAMIC_PROB   = 0.07   # probability of spawning a wall per agent step
 
 # ── Colour palette ───────────────────────────────────────────────────────────
