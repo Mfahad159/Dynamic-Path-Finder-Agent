@@ -32,6 +32,7 @@ class Grid:
         self.cols      = cols
         self.cell_size = cell_size
         self.cells     = [[EMPTY] * cols for _ in range(rows)]
+        self.costs     = [[random.randint(1, 10) for _ in range(cols)] for _ in range(rows)]
         self.start     = (0, 0)
         self.goal      = (rows - 1, cols - 1)
         self.cells[0][0]               = START
@@ -135,8 +136,11 @@ class Grid:
         Fill the grid randomly.
         Each cell becomes WALL with probability *density*.
         Start and goal are always kept clear.
+        Regenerate random costs for all cells.
         """
         self.reset_search()
+        # Regenerate random costs for each cell
+        self.costs = [[random.randint(1, 10) for _ in range(self.cols)] for _ in range(self.rows)]
         for r in range(self.rows):
             for c in range(self.cols):
                 if (r, c) == self.start:
