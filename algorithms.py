@@ -7,14 +7,14 @@ Public API
 ----------
     manhattan(a, b)  → float
     euclidean(a, b)  → float
-    run_gbfs(cells, rows, cols, start, goal, h_fn)  → SearchResult
-    run_astar(cells, rows, cols, start, goal, h_fn) → SearchResult
+    run_gbfs(cells, costs, rows, cols, start, goal, h_fn)  → SearchResult
+    run_astar(cells, costs, rows, cols, start, goal, h_fn) → SearchResult
 
 SearchResult = (path | None, events, nodes_visited, path_cost, exec_ms)
     path          : list[(r,c)] start→goal, or None if unreachable
     events        : list[('frontier'|'expand', (r,c))] for animation
     nodes_visited : int
-    path_cost     : int (steps)
+    path_cost     : float (accumulated edge costs)
     exec_ms       : float (wall-clock milliseconds)
 """
 
@@ -69,12 +69,13 @@ def _elapsed_ms(t0: float) -> float:
 
 # ── Greedy Best-First Search ──────────────────────────────────────────────────
 
-def run_gbfs(cells, rows, cols, start, goal, h_fn):
+def run_gbfs(cells, costs, rows, cols, start, goal, h_fn):
     """
     Greedy Best-First Search  —  f(n) = h(n)
 
     Expands the node with the smallest heuristic value.
     Fast, but *not* guaranteed to find the optimal path.
+    Uses random costs from the costs matrix for each node.
     """
     t0      = time.perf_counter()
     heap    = []
@@ -86,6 +87,8 @@ def run_gbfs(cells, rows, cols, start, goal, h_fn):
     visited     = set()
     events      = []
     nodes_visited = 0
+
+    path_cost = 0  # Track cumulative path cost
 
     while heap:
         _, _, cur = heapq.heappop(heap)
@@ -100,7 +103,11 @@ def run_gbfs(cells, rows, cols, start, goal, h_fn):
 
         if cur == goal:
             path = _reconstruct(came_from, goal)
-            return path, events, nodes_visited, len(path) - 1, _elapsed_ms(t0)
+            # Calculate total path cost
+            total_cost = 0
+            for node in path[1:]:
+                total_cost += costs[node[0]][node[1]]
+            return path, events, nodes_visited, total_cost, _elapsed_ms(t0)
 
         for nb in _neighbors(cells, rows, cols, cur):
             if nb not in visited and nb not in in_frontier:
@@ -115,12 +122,13 @@ def run_gbfs(cells, rows, cols, start, goal, h_fn):
 
 # ── A* Search ─────────────────────────────────────────────────────────────────
 
-def run_astar(cells, rows, cols, start, goal, h_fn):
+def run_astar(cells, costs, rows, cols, start, goal, h_fn):
     """
     A* Search  —  f(n) = g(n) + h(n)
 
     Combines exact path cost g(n) with heuristic h(n).
     Optimal when the heuristic is admissible (never overestimates).
+    Uses random costs from the costs matrix for each node.
     """
     t0      = time.perf_counter()
     heap    = []
@@ -150,7 +158,8 @@ def run_astar(cells, rows, cols, start, goal, h_fn):
             return path, events, nodes_visited, g_cost[goal], _elapsed_ms(t0)
 
         for nb in _neighbors(cells, rows, cols, cur):
-            new_g = g_cost[cur] + 1
+            nb_cost = costs[nb[0]][nb[1]]
+            new_g = g_cost[cur] + nb_cost
             if nb not in g_cost or new_g < g_cost[nb]:
                 g_cost[nb]    = new_g
                 f_score       = new_g + h_fn(nb, goal)

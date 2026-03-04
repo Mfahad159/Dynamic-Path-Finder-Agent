@@ -331,7 +331,7 @@ class App:
         g    = self.grid
 
         path, evts, nv, pc, em = algo(
-            g.cells, g.rows, g.cols, g.start, g.goal, h_fn)
+            g.cells, g.costs, g.rows, g.cols, g.start, g.goal, h_fn)
 
         self.events_list   = evts
         self.anim_idx      = 0
@@ -465,7 +465,7 @@ class App:
 
         g.clear_path()
         path, _, nv, pc, em = algo(
-            g.cells, g.rows, g.cols, current, g.goal, h_fn)
+            g.cells, g.costs, g.rows, g.cols, current, g.goal, h_fn)
 
         self.nodes_visited += nv
         self.exec_ms       += em
